@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Get all messages",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Create new message",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "text": "Test message",
+        "user_name": "Test User"
+      },
+      "expectedStatus": 201
+    }
+  ]
+}
