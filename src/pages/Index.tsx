@@ -1,15 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import ChatComponent from '@/components/ChatComponent';
 import NewsComponent from '@/components/NewsComponent';
+import ProfileComponent from '@/components/ProfileComponent';
 
 const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'home' | 'news' | 'chat'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'news' | 'chat' | 'profile'>('home');
+  const [userId, setUserId] = useState<string>('');
+  const [userProfile, setUserProfile] = useState<any>(null);
 
-  const handleMenuItemClick = (view: 'news' | 'chat') => {
+  useEffect(() => {
+    let storedUserId = localStorage.getItem('userId');
+    if (!storedUserId) {
+      storedUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('userId', storedUserId);
+    }
+    setUserId(storedUserId);
+  }, []);
+
+  const handleMenuItemClick = (view: 'news' | 'chat' | 'profile') => {
     setCurrentView(view);
     setMenuOpen(false);
+  };
+
+  const handleProfileCreated = (profile: any) => {
+    setUserProfile(profile);
   };
 
   return (
@@ -36,13 +52,19 @@ const Index = () => {
 
       {currentView === 'news' && (
         <div className="animate-fade-in">
-          <NewsComponent />
+          <NewsComponent userId={userId} />
         </div>
       )}
 
       {currentView === 'chat' && (
         <div className="animate-fade-in">
           <ChatComponent />
+        </div>
+      )}
+
+      {currentView === 'profile' && (
+        <div className="animate-fade-in">
+          <ProfileComponent onProfileCreated={handleProfileCreated} currentUserId={userId} />
         </div>
       )}
 
@@ -73,6 +95,13 @@ const Index = () => {
               >
                 <Icon name="MessageCircle" size={24} />
                 Чат
+              </button>
+              <button
+                onClick={() => handleMenuItemClick('profile')}
+                className="w-full text-left p-4 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-3 text-lg font-heading font-semibold text-gray-800"
+              >
+                <Icon name="User" size={24} />
+                Профиль
               </button>
               {currentView !== 'home' && (
                 <button

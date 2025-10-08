@@ -37,7 +37,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 if news_id:
-                    cur.execute("SELECT id, title, content, image_url, created_at FROM news WHERE id = %s", (news_id,))
+                    cur.execute('''SELECT n.id, n.title, n.content, n.image_url, n.created_at, n.author_id,
+                                   p.nickname, p.avatar 
+                                   FROM news n 
+                                   LEFT JOIN profiles p ON n.author_id = p.user_id 
+                                   WHERE n.id = %s''', (news_id,))
                     news_item = cur.fetchone()
                     
                     if not news_item:
@@ -57,7 +61,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'news': news_item})
                     }
                 else:
-                    cur.execute("SELECT id, title, content, image_url, created_at FROM news ORDER BY created_at DESC")
+                    cur.execute('''SELECT n.id, n.title, n.content, n.image_url, n.created_at, n.author_id,
+                                   p.nickname, p.avatar 
+                                   FROM news n 
+                                   LEFT JOIN profiles p ON n.author_id = p.user_id 
+                                   ORDER BY n.created_at DESC''')
                     news_list = cur.fetchall()
                     
                     for news_item in news_list:
@@ -75,15 +83,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             title = body_data.get('title', '')
             content = body_data.get('content', '')
             image_base64 = body_data.get('image', '')
+            author_id = body_data.get('author_id', '')
             
             image_url = None
-            if image_base64:
+            if image_base64 and len(image_base64) < 500000:
                 image_url = image_base64
             
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute(
-                    "INSERT INTO news (title, content, image_url) VALUES (%s, %s, %s) RETURNING id, title, content, image_url, created_at",
-                    (title, content, image_url)
+                    "INSERT INTO news (title, content, image_url, author_id) VALUES (%s, %s, %s, %s) RETURNING id, title, content, image_url, created_at, author_id",
+                    (title, content, image_url, author_id)
                 )
                 new_news = cur.fetchone()
                 conn.commit()

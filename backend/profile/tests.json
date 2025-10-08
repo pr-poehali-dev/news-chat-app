@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "Create profile",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "user_id": "test_user",
+        "nickname": "Test User",
+        "avatar": "",
+        "bio": "Test bio"
+      },
+      "expectedStatus": 201
+    },
+    {
+      "name": "Get profile",
+      "method": "GET",
+      "path": "/?user_id=test_user",
+      "expectedStatus": 200
+    }
+  ]
+}

@@ -9,11 +9,18 @@ interface NewsItem {
   content: string;
   image_url?: string;
   created_at: string;
+  author_id?: string;
+  nickname?: string;
+  avatar?: string;
 }
 
 const NEWS_API_URL = 'https://functions.poehali.dev/78097a71-2b19-4d6a-accd-b36c3bf7ae33';
 
-const NewsComponent = () => {
+interface NewsComponentProps {
+  userId?: string;
+}
+
+const NewsComponent = ({ userId = '' }: NewsComponentProps) => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
@@ -44,6 +51,14 @@ const NewsComponent = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 200000) {
+        toast({
+          title: 'Ошибка',
+          description: 'Размер файла не должен превышать 200 КБ',
+          variant: 'destructive',
+        });
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setImageFile(reader.result as string);
@@ -73,6 +88,7 @@ const NewsComponent = () => {
           title,
           content,
           image: imageFile,
+          author_id: userId,
         }),
       });
 
@@ -131,9 +147,27 @@ const NewsComponent = () => {
             {selectedNews.title}
           </h1>
 
-          <p className="text-sm text-gray-500 mb-6">
-            {formatDate(selectedNews.created_at)}
-          </p>
+          <div className="flex items-center gap-3 mb-6">
+            {selectedNews.avatar ? (
+              <img
+                src={selectedNews.avatar}
+                alt={selectedNews.nickname}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <Icon name="User" size={20} className="text-gray-400" />
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-semibold text-gray-800">
+                {selectedNews.nickname || 'Аноним'}
+              </p>
+              <p className="text-xs text-gray-500">
+                {formatDate(selectedNews.created_at)}
+              </p>
+            </div>
+          </div>
 
           <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
             {selectedNews.content}
@@ -260,9 +294,25 @@ const NewsComponent = () => {
                     <p className="text-gray-600 mb-2 line-clamp-2">
                       {item.content}
                     </p>
-                    <span className="text-xs text-gray-400">
-                      {formatDate(item.created_at)}
-                    </span>
+                    <div className="flex items-center gap-2 mt-3">
+                      {item.avatar ? (
+                        <img
+                          src={item.avatar}
+                          alt={item.nickname}
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                          <Icon name="User" size={12} className="text-gray-400" />
+                        </div>
+                      )}
+                      <span className="text-xs text-gray-600 font-medium">
+                        {item.nickname || '\u0410\u043d\u043e\u043d\u0438\u043c'}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        • {formatDate(item.created_at)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
